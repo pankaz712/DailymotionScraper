@@ -1,25 +1,25 @@
-###### wirting the full program
+###### loading required libraries
+
+library(curl)
+library(rvest)
+library(dplyr)
+
 
 ## first scrap the main index
 
-main.idx = "https://www.dailymotion.com/archived/index.html"
+main.idx = "https://www.dailymotion.com/archived/index.html"    # this is the primary Url for the archives
 wbpg.tmp = read_html(main_url)
 urls.level.zero = html_nodes(wbpg.tmp, '.foreground2') %>% html_attr('href')
-nc = grepl(pattern = '2014|2015',urls.level.zero)
+nc = grepl(pattern = '2014|2015',urls.level.zero)    # subsetting only the years that are needed
 urls.level.zero = urls.level.zero[which(nc==T)]
 
-
-head(urls.level.zero)
-tail(urls.level.zero)
-
 # outer loop
-mydf = data.frame()
+mydf = data.frame()      # empty data frame to store titles and urls
 
 for(i in 1:length(urls.level.zero)){
   closeAllConnections()
   url.tmp = paste0("https://www.dailymotion.com",urls.level.zero[i])
   print(url.tmp)
-  #wbpg.tmp = read_html(url.tmp)
   wbpg.tmp = tryCatch(
     
     read_html(url.tmp),
@@ -38,8 +38,8 @@ for(i in 1:length(urls.level.zero)){
     closeAllConnections()
     url.tmp = paste0("https://www.dailymotion.com",urls.level.one[j])
     print(url.tmp)
-    #wbpg.tmp = read_html(url.tmp)
-    wbpg.tmp = tryCatch(
+    
+	wbpg.tmp = tryCatch(
       
       read_html(url.tmp),
       error = function(e) e
@@ -72,8 +72,7 @@ for(i in 1:length(urls.level.zero)){
       urls = html_nodes(wbpg.tmp, '.video_title') %>% html_attr('href')
       tmp = data.frame(title = text,urls = urls)
       mydf = rbind(mydf,tmp)
-      #Sys.sleep(time = 1)
-      
+            
     }
   
     Sys.sleep(time = 1)
@@ -81,15 +80,7 @@ for(i in 1:length(urls.level.zero)){
   }
 }
 
-
-#  "https://www.dailymotion.com/archived/2014/07/21/Morning/index.html"
-
-
-###
-head(mydf)
-tail(mydf)
-
-###################################
+##################################
 
 write.csv(x = mydf,file = "mydf.csv")
 
